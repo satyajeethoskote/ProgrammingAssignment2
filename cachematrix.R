@@ -27,13 +27,30 @@ makeCacheMatrix <- function(x = matrix()) {
 ## if it has already been computed
 cacheSolve <- function(x, ...) {
   ## Return a matrix that is the inverse of 'x'
+  fromCache = FALSE
   inv <- x$getinv()
   if(!is.null(inv)) {
-    message("getting cached data")
-    return(inv)
+    fromCache = TRUE
+  } else {
+    matrix <- x$get()
+    inv <- solve(matrix)
+    x$setinv(inv)
   }
-  matrix <- x$get()
-  inv <- solve(matrix)
-  x$setinv(inv)
-  inv
+  list(inv = inv, fromCache = fromCache)
+}
+
+## Test function for CacheMatrix
+testCacheMatrix <- function() {
+  # Generate a random 10x10 matrix
+  mat <- matrix(rnorm(10*10,mean=0,sd=1), 10, 10)
+  # Convert it to a CacheMatrix
+  cmat <- makeCacheMatrix(mat)
+  # Calculate the inverse
+  result <- cacheSolve(cmat)
+  # The first time, the function will calculate the inverse
+  message('Call 1: Inverse returned from cache: ', (result$fromCache == TRUE))
+  # Do it again
+  result <- cacheSolve(cmat)
+  # Now, this should be returned from the cache
+  message('Call 2: Inverse returned from cache: ', (result$fromCache == TRUE))
 }
